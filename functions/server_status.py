@@ -256,12 +256,14 @@ def resolve_server_status(query: str) -> ResolvedServer:
     )
 
 
-def resolve_from_asa_server(data: dict, query: str = "") -> ResolvedServer:
+def resolve_from_asa_server(data: AsaServer | dict, query: str = "") -> ResolvedServer:
     """Build a status payload from an official-list row (used by the up-checker)."""
-    parsed = parse_asa_server(data)
+    parsed = data if isinstance(data, AsaServer) else parse_asa_server(data)
     snapshot = get_snapshot(refresh_if_stale=False)
     network = current_network()
     if parsed is None:
+        if not isinstance(data, dict):
+            raise TypeError("resolve_from_asa_server expected AsaServer or dict")
         bm = _bm_or_empty(asa_row=data, query=query, need_identity=False)
         presence = ServerPresenceStatus(
             status=STATUS_ONLINE,

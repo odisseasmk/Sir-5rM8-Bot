@@ -115,5 +115,15 @@ class AsaSnapshot:
     def by_key(self) -> dict[str, AsaServer]:
         return {s.server_key: s for s in self.servers if s.server_key}
 
+    def get(self, server_key: str) -> AsaServer | None:
+        """Lookup by notify/server key without rebuilding the full raw dict list."""
+        key = str(server_key or "").strip()
+        if not key:
+            return None
+        for server in self.servers:
+            if server.server_key == key:
+                return server
+        return None
+
     def as_raw_list(self) -> list[dict]:
         return [s.to_raw_dict() for s in self.servers]

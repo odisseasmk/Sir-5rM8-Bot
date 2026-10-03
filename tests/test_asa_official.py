@@ -23,7 +23,7 @@ from functions.asa_status import (
     reset_status_tracker,
 )
 from functions.battlemetrics import BattleMetricsUptime
-from functions.server_status import resolve_server_status
+from functions.server_status import resolve_from_asa_server, resolve_server_status
 
 
 def _row(**overrides) -> dict:
@@ -105,6 +105,33 @@ def test_parse_official_server_list_fields():
     assert parsed.port == 7779
     assert parsed.last_updated is not None
     assert parsed.session_id == "e6700e1233264846a0fbd1230d3513e3"
+
+
+def test_snapshot_get_by_server_key():
+    snap = parse_server_list([_row()])
+    assert snap.get("5313") is not None
+    assert snap.get("5313").session_id == "e6700e1233264846a0fbd1230d3513e3"
+    assert snap.get("missing") is None
+    assert snap.get("") is None
+
+
+def test_resolve_from_asa_server_accepts_model(monkeypatch):
+    snap = parse_server_list([_row()])
+    server = snap.get("5313")
+    assert server is not None
+    monkeypatch.setattr("functions.server_status.get_snapshot", lambda **_k: snap)
+    monkeypatch.setattr("functions.server_status.current_network", _online_network)
+    monkeypatch.setattr("functions.server_status.current_announcement", lambda: None)
+    monkeypatch.setattr("functions.server_status.config.BATTLEMETRICS_TOKEN", "")
+    monkeypatch.setattr(
+        "functions.server_status.fetch_server_uptime_from_asa",
+        lambda _s: _bm(error="no_token"),
+    )
+    reset_status_tracker()
+    resolved = resolve_from_asa_server(server, "5313")
+    assert resolved.ok
+    assert resolved.server_key == "5313"
+    assert resolved.presence == STATUS_ONLINE
 
 
 def test_parse_last_updated_millis():

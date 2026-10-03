@@ -46,8 +46,9 @@ NOTIFICATION_URL = os.environ.get(
     "NOTIFICATION_URL",
     "https://cdn2.arkdedicated.com/asa/notification.html",
 ).strip()
-ASA_POLL_SECONDS = int(os.environ.get("ASA_POLL_SECONDS", "60"))
-ASA_CACHE_TTL_SECONDS = int(os.environ.get("ASA_CACHE_TTL_SECONDS", "60"))
+# 120s default: full CDN reparse ~every minute was wasting CPU/allocator RSS for ~3k servers.
+ASA_POLL_SECONDS = int(os.environ.get("ASA_POLL_SECONDS", "120"))
+ASA_CACHE_TTL_SECONDS = int(os.environ.get("ASA_CACHE_TTL_SECONDS", "120"))
 ASA_OFFLINE_MISS_THRESHOLD = int(os.environ.get("ASA_OFFLINE_MISS_THRESHOLD", "2"))
 ASA_STALE_SECONDS = int(os.environ.get("ASA_STALE_SECONDS", "300"))
 ASA_BM_FALLBACK = os.environ.get("ASA_BM_FALLBACK", "1").strip().lower() not in ("0", "false", "no")

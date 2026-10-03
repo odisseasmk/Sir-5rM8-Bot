@@ -30,7 +30,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Bumps when deploy verification matters; check logs after redeploy.
-DEPLOY_MARKER = "v1.8.2"
+DEPLOY_MARKER = "v1.8.3"
 
 
 def _last_commit_title(*, fallback: str | None = None) -> str:
@@ -197,6 +197,16 @@ async def on_ready():
     global extensions_loaded, global_sync_ok, restart_notice_sent
 
     logger.info("Logged in as %s (ID: %s)", bot.user, bot.user.id)
+    # Channel/role caches (not members) dominate multi-guild RSS — log footprint for RAM audits.
+    guild_n = len(bot.guilds)
+    channel_n = sum(len(g.channels) for g in bot.guilds)
+    role_n = sum(len(g.roles) for g in bot.guilds)
+    logger.info(
+        "Guild footprint: %s guilds, %s channels, %s roles",
+        guild_n,
+        channel_n,
+        role_n,
+    )
 
     # DM the owner on every process start (retry on later on_ready if the first send fails).
     if not restart_notice_sent:

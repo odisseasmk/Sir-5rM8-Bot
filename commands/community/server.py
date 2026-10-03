@@ -12,10 +12,9 @@ from discord import app_commands
 from discord.ext import commands, tasks
 
 import config
-from functions.asa import match_server_key_in_list
-from functions.asa_cache import get_snapshot, refresh_asa_cache
+from functions.asa import notify_key
+from functions.asa_cache import get_snapshot, last_good_snapshot, refresh_asa_cache
 from functions.asa_status import STATUS_OFFLINE, STATUS_ONLINE
-from functions.charts import render_server_status_chart
 from functions.outage_form import build_outage_report_url
 from functions.server_status import ResolvedServer, resolve_from_asa_server, resolve_server_status
 from functions import up_notify_cache
@@ -76,6 +75,9 @@ def _status_embed_and_chart(resolved: ResolvedServer) -> tuple[discord.Embed, by
     elif len(bm.history) < 2:
         status_message = "BattleMetrics returned too little uptime history."
 
+    # Lazy import: Pillow stays out of the process until a chart is actually built.
+    from functions.charts import render_server_status_chart
+
     chart_bytes = render_server_status_chart(
         session_name=resolved.session_name,
         num_players=resolved.num_players,
@@ -123,12 +125,11 @@ class NotifyWhenUpButton(discord.ui.DynamicItem[discord.ui.Button], template=r"s
             return
 
         snap = await asyncio.to_thread(get_snapshot)
+        key = notify_key(self.server_key)
         if snap.fetch_ok:
-            servers = snap.as_raw_list()
+            found = snap.get(key)
             live_list = True
         else:
-            from functions.asa_cache import last_good_snapshot
-
             good = last_good_snapshot()
             if good is None:
                 await interaction.followup.send(
@@ -136,10 +137,9 @@ class NotifyWhenUpButton(discord.ui.DynamicItem[discord.ui.Button], template=r"s
                     ephemeral=True,
                 )
                 return
-            servers = good.as_raw_list()
+            found = good.get(key)
             live_list = False
 
-        found = match_server_key_in_list(servers, self.server_key)
         if found and live_list:
             await interaction.followup.send(
                 "That server is already online — try `/serverstatus` again.",
@@ -272,9 +272,10 @@ class Server(commands.Cog):
         if network is not None and network.fetch_ok and network.online is False:
             logger.info("Up-notify check skipped: official ARK network is offline")
             return
-        servers = snap.as_raw_list()
+        # Index AsaServer objects once — avoid rebuilding ~3k raw dicts every minute.
+        by_key = snap.by_key()
         for key in keys:
-            found = match_server_key_in_list(servers, key)
+            found = by_key.get(notify_key(key))
             if not found:
                 continue
             watchers = await asyncio.to_thread(up_notify_cache.list_watchers, key)

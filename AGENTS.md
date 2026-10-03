@@ -80,13 +80,13 @@ No user-facing prefix commands.
 | `BM_UPTIME_RESOLUTION_MINUTES` | `60` | BattleMetrics downtime bucket size (`60` or `1440`) |
 | `SERVER_UP_CHECK_MINUTES` | `1` | How often to poll watched offline servers for notify-when-up |
 | `OUTAGE_REPORT_URL` | Google Form | Offline **Report Outage** link; prefilled from the `/serverstatus` lookup |
-| `ASA_POLL_SECONDS` | `60` | Official list / network-status poll interval |
+| `ASA_POLL_SECONDS` | `120` | Official list / network-status poll interval |
 | `TWITCH_CLIENT_ID` / `TWITCH_CLIENT_SECRET` | — | Twitch API credentials for go-live polling |
 | `TWITCH_CHANNELS` | — | Comma/space-separated default Twitch logins |
 | `TWITCH_DISCORD_CHANNEL_ID` | — | Default channel for go-live alerts |
 | `TWITCH_PING_ROLE_ID` | — | Default role to mention in go-live alerts |
 | `TWITCH_POLL_INTERVAL_MINUTES` | `10` | Twitch polling interval |
-| `ASA_CACHE_TTL_SECONDS` | `60` | Serve cached official list newer than this |
+| `ASA_CACHE_TTL_SECONDS` | `120` | Serve cached official list newer than this |
 | `ASA_OFFLINE_MISS_THRESHOLD` | `2` | Consecutive successful-list misses before OFFLINE |
 | `ASA_STALE_SECONDS` | `300` | Treat LastUpdated older than this as UNKNOWN |
 | `ASA_BM_FALLBACK` | `1` | Use BattleMetrics for uptime graph and missing-server identity |

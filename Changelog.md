@@ -8,6 +8,19 @@
 
 ### Docs
 
+## [1.8.3] - 2026-10-03
+
+### Fixes
+
+- Lower default ASA poll/cache TTL to 120s and look up up-notify servers without rebuilding the full ~3k-row dict list each minute (cuts allocator churn / RSS pressure)
+- Lazy-load Pillow chart rendering until `/serverstatus` or an up-notify send needs a PNG
+- Log guild/channel/role footprint on ready to make multi-guild RAM drivers visible
+- Deploy marker `v1.8.3`
+
+### Docs
+
+- Document ASA poll/TTL defaults as 120 seconds
+
 ## [1.8.0] - 2026-08-31
 
 ### Features
