@@ -56,7 +56,7 @@ We may update these Terms of Service from time to time. Continued use of the bot
 
 ## 8. Contact
 
-For questions about these Terms of Service, please open an issue on our [GitHub repository](https://github.com/xWonder87x/Sir-5rM8) or contact us through the contact method listed in our Privacy Policy.
+For questions about these Terms of Service, please open an issue on our [GitHub repository](https://github.com/odisseasmk/Sir-5rM8-Bot) or contact us through the contact method listed in our Privacy Policy.
 
 ## 9. Governing Law
 

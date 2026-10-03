@@ -76,7 +76,7 @@ We may update this Privacy Policy from time to time. The "Last updated" date wil
 
 For privacy-related questions or to exercise your rights, please:
 
-- Open an issue on our [GitHub repository](https://github.com/xWonder87x/Sir-5rM8), or
+- Open an issue on our [GitHub repository](https://github.com/odisseasmk/Sir-5rM8-Bot), or
 - Contact us through the method listed in the bot's support server or profile
 
 ---
