@@ -8,6 +8,13 @@
 
 ### Docs
 
+## [2.0.0] - 2026-10-24
+
+### Fixes
+
+- Require Python 3.11 or newer. Pillow 13 has no Python 3.10 release, so CI on 3.10 could not install.
+- Deploy marker `v2.0.0`
+
 ## [1.9.0] - 2026-10-23
 
 ### Features

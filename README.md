@@ -94,7 +94,7 @@ Set `TWITCH_CLIENT_ID` / `TWITCH_CLIENT_SECRET`, then configure the alert role a
 
 ## Self-hosting
 
-**Requirements:** Python **3.10+**, a Discord bot token in `.env` (`TOKEN=...`).
+**Requirements:** Python **3.11+**, a Discord bot token in `.env` (`TOKEN=...`).
 
 ```bash
 pip install -r requirements.txt

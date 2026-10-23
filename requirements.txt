@@ -4,5 +4,5 @@ requests==2.34.2
 aiohttp>=3.14.5,<4.0
 supabase>=2.15.0  # Postgres REST client
 psycopg[binary]>=3.2.0
-Pillow>=13.0.0
+Pillow>=13.0.0  # 13.x requires Python >=3.11
 boto3>=1.34.0

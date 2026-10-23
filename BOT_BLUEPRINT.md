@@ -1,6 +1,6 @@
 # BOT_BLUEPRINT.md
 
-**Universal architecture and strategy for Discord bots** built with **Python 3.10+**, **discord.py** (slash/interactions only), and **Neon / Lakebase Postgres**.
+**Universal architecture and strategy for Discord bots** built with **Python 3.11+**, **discord.py** (slash/interactions only), and **Neon / Lakebase Postgres**.
 
 Copy this file into every bot repo unchanged. Pair it with a bot-specific **`AGENTS.md`**. This file defines **how** bots are built — not **what** each bot does.
 
@@ -104,7 +104,7 @@ If a bot does not need something, **omit it** — do not scaffold empty cogs "be
 
 | Layer | Choice |
 |-------|--------|
-| Language | Python 3.10+ (`.python-version` for pyenv) |
+| Language | Python 3.11+ (`.python-version` for pyenv) |
 | Discord | `discord.py` — interactions / app commands only |
 | Database | **Lakebase Postgres via Neon** (`DATABASE_URL` + `psycopg[binary]`) |
 | Config | `config.py` for IDs/tunables; `.env` / host vars for secrets |
@@ -492,7 +492,7 @@ Feature-specific vars (channel IDs, API keys, intervals, etc.) belong in that bo
 ## Local setup
 
 ```bash
-python3.10 --version          # 3.10+ required (.python-version in repo for pyenv)
+python3.11 --version          # 3.11+ required (.python-version in repo for pyenv)
 pip install -r requirements.txt
 # create .env with TOKEN and DATABASE_URL (Neon pooled string)
 python main.py
@@ -586,7 +586,7 @@ When adding or modifying features in any bot:
 
 ### New bot (greenfield)
 
-> I'm starting a brand-new Discord bot. Follow **`BOT_BLUEPRINT.md`**: Python 3.10+, discord.py slash-only, `main.py` + `config.py` + `db/` package + `functions/` (as needed) + `commands/<feature>/` cogs + `db/sql/schema.sql` + `EXPECTED_SCHEMA`. Persist with **Neon** via `DATABASE_URL` and `psycopg` (`db/pg_client.py`). Create a bot-specific **`AGENTS.md`** listing only the cogs and slash commands for **this** bot. Do **not** copy commands, cogs, or feature folders from my other bots. For v1, here are the features I want: … (list). Create skeleton, requirements, `.env` docs, empty cogs with `setup()`, and README command section. Do not add object-storage JSON caching until a hot-read need is identified; when added, keep Neon authoritative for domain state and use a dedicated bucket.
+> I'm starting a brand-new Discord bot. Follow **`BOT_BLUEPRINT.md`**: Python 3.11+, discord.py slash-only, `main.py` + `config.py` + `db/` package + `functions/` (as needed) + `commands/<feature>/` cogs + `db/sql/schema.sql` + `EXPECTED_SCHEMA`. Persist with **Neon** via `DATABASE_URL` and `psycopg` (`db/pg_client.py`). Create a bot-specific **`AGENTS.md`** listing only the cogs and slash commands for **this** bot. Do **not** copy commands, cogs, or feature folders from my other bots. For v1, here are the features I want: … (list). Create skeleton, requirements, `.env` docs, empty cogs with `setup()`, and README command section. Do not add object-storage JSON caching until a hot-read need is identified; when added, keep Neon authoritative for domain state and use a dedicated bucket.
 
 ### Existing bot
 
