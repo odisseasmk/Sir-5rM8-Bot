@@ -150,3 +150,73 @@ async def test_post_ark_notice_replaces_previous_removal() -> None:
     mock_tt.assert_awaited_once_with(
         ark_mod.notice_cache.set_ark_notice_last_message, "1", "21"
     )
+
+
+@pytest.mark.asyncio
+async def test_expire_stale_restart_notices_deletes_old_restart() -> None:
+    from datetime import datetime, timedelta, timezone
+
+    msg = MagicMock()
+    msg.embeds = [MagicMock(title="Official ARK Restart Notice")]
+    msg.created_at = datetime.now(timezone.utc) - timedelta(hours=25)
+    msg.delete = AsyncMock()
+    channel = MagicMock()
+    channel.fetch_message = AsyncMock(return_value=msg)
+    guild = MagicMock()
+    guild.get_channel = MagicMock(return_value=channel)
+    bot = MagicMock()
+    bot.get_guild = MagicMock(return_value=guild)
+
+    with patch.object(ark_mod.asyncio, "to_thread", new_callable=AsyncMock) as mock_tt:
+        mock_tt.side_effect = [
+            [{"guild_id": "1", "channel_id": "2", "last_message_id": "99"}],
+            None,
+        ]
+        deleted = await ark_mod.expire_stale_restart_notices(bot)
+
+    assert deleted == 1
+    msg.delete.assert_awaited_once()
+    channel.fetch_message.assert_awaited_once_with(99)
+    assert mock_tt.await_args_list[-1].args == (
+        ark_mod.notice_cache.set_ark_notice_last_message,
+        "1",
+        None,
+    )
+
+
+@pytest.mark.asyncio
+async def test_expire_stale_restart_notices_skips_removal_and_fresh() -> None:
+    from datetime import datetime, timedelta, timezone
+
+    removal = MagicMock()
+    removal.embeds = [MagicMock(title="Official ARK Server Removal")]
+    removal.created_at = datetime.now(timezone.utc) - timedelta(hours=48)
+    removal.delete = AsyncMock()
+
+    fresh = MagicMock()
+    fresh.embeds = [MagicMock(title="Official ARK Restart Notice")]
+    fresh.created_at = datetime.now(timezone.utc) - timedelta(hours=1)
+    fresh.delete = AsyncMock()
+
+    ch1 = MagicMock()
+    ch1.fetch_message = AsyncMock(return_value=removal)
+    ch2 = MagicMock()
+    ch2.fetch_message = AsyncMock(return_value=fresh)
+
+    guild = MagicMock()
+    guild.get_channel = MagicMock(side_effect=[ch1, ch2])
+    bot = MagicMock()
+    bot.get_guild = MagicMock(return_value=guild)
+
+    with patch.object(ark_mod.asyncio, "to_thread", new_callable=AsyncMock) as mock_tt:
+        mock_tt.return_value = [
+            {"guild_id": "1", "channel_id": "2", "last_message_id": "10"},
+            {"guild_id": "1", "channel_id": "3", "last_message_id": "11"},
+        ]
+        deleted = await ark_mod.expire_stale_restart_notices(bot)
+
+    assert deleted == 0
+    removal.delete.assert_not_called()
+    fresh.delete.assert_not_called()
+    # Only the list_ark_notifications call — no clear of last_message_id
+    assert mock_tt.await_count == 1

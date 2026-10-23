@@ -53,6 +53,11 @@ ASA_OFFLINE_MISS_THRESHOLD = int(os.environ.get("ASA_OFFLINE_MISS_THRESHOLD", "2
 ASA_STALE_SECONDS = int(os.environ.get("ASA_STALE_SECONDS", "300"))
 ASA_BM_FALLBACK = os.environ.get("ASA_BM_FALLBACK", "1").strip().lower() not in ("0", "false", "no")
 ASA_BM_COMPARE = os.environ.get("ASA_BM_COMPARE", "1").strip().lower() not in ("0", "false", "no")
+# Auto-delete "Official ARK Restart Notice" Discord posts after this many hours.
+ARK_RESTART_NOTICE_TTL_HOURS = float(os.environ.get("ARK_RESTART_NOTICE_TTL_HOURS", "24"))
+ARK_RESTART_NOTICE_EXPIRE_CHECK_MINUTES = int(
+    os.environ.get("ARK_RESTART_NOTICE_EXPIRE_CHECK_MINUTES", "15")
+)
 
 THUMBNAIL_URL = (
     "https://ark.wiki.gg/images/thumb/0/0a/ASA_Logo_transparent.png/198px-ASA_Logo_transparent.png"

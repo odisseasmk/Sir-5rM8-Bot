@@ -4,6 +4,8 @@
 
 ### Features
 
+- Auto-delete **Official ARK Restart Notice** Discord posts after 24 hours (`ARK_RESTART_NOTICE_TTL_HOURS`)
+
 ### Fixes
 
 ### Docs

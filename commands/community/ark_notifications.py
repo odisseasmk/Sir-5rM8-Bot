@@ -11,10 +11,15 @@ from discord.ext import commands, tasks
 import config
 from functions import ark_notices as notice_cache
 from functions.ark_notices import (
+    GENERIC_NOTICE_TITLE,
+    REMOVAL_NOTICE_TITLE,
+    RESTART_NOTICE_TITLE,
     consume_ark_notice_update,
     is_restart_countdown_notice,
     is_server_removal_notice,
+    list_ark_notifications,
     replaces_previous_ark_notice,
+    restart_notice_is_expired,
     should_post_ark_notice,
 )
 from functions.asa_cache import current_announcement
@@ -29,13 +34,13 @@ _CHANNEL_TYPES = [
 
 def build_ark_notice_embed(text: str) -> discord.Embed:
     if is_server_removal_notice(text):
-        title = "Official ARK Server Removal"
+        title = REMOVAL_NOTICE_TITLE
         colour = discord.Colour.red()
     elif is_restart_countdown_notice(text):
-        title = "Official ARK Restart Notice"
+        title = RESTART_NOTICE_TITLE
         colour = discord.Colour.orange()
     else:
-        title = "Official ARK Notification"
+        title = GENERIC_NOTICE_TITLE
         colour = discord.Colour.orange()
     embed = discord.Embed(
         title=title,
@@ -72,6 +77,47 @@ async def post_ark_notice(
     sent = await channel.send(embed=build_ark_notice_embed(text))
     await asyncio.to_thread(notice_cache.set_ark_notice_last_message, guild_id, str(sent.id))
     return str(sent.id)
+
+
+async def expire_stale_restart_notices(bot) -> int:
+    """Delete tracked Official ARK Restart Notice posts older than the TTL. Returns delete count."""
+    rows = await asyncio.to_thread(list_ark_notifications)
+    deleted = 0
+    for ent in rows:
+        guild_id = str(ent.get("guild_id") or "")
+        message_id = ent.get("last_message_id")
+        channel_id = ent.get("channel_id")
+        if not guild_id or not message_id or not channel_id:
+            continue
+        try:
+            guild = bot.get_guild(int(guild_id))
+            channel = guild.get_channel(int(channel_id)) if guild else None
+            if channel is None or not hasattr(channel, "fetch_message"):
+                continue
+            msg = await channel.fetch_message(int(message_id))
+        except (ValueError, TypeError, discord.NotFound):
+            await asyncio.to_thread(notice_cache.set_ark_notice_last_message, guild_id, None)
+            continue
+        except (discord.Forbidden, discord.HTTPException) as exc:
+            logger.warning("Restart notice expire skipped for guild %s: %s", guild_id, exc)
+            continue
+
+        title = msg.embeds[0].title if msg.embeds else None
+        if title != RESTART_NOTICE_TITLE:
+            continue
+        if not restart_notice_is_expired(msg.created_at):
+            continue
+        try:
+            await msg.delete()
+        except discord.NotFound:
+            pass
+        except (discord.Forbidden, discord.HTTPException) as exc:
+            logger.warning("Could not delete restart notice in guild %s: %s", guild_id, exc)
+            continue
+        await asyncio.to_thread(notice_cache.set_ark_notice_last_message, guild_id, None)
+        deleted += 1
+        logger.info("Deleted expired ARK restart notice in guild %s", guild_id)
+    return deleted
 
 
 async def _resolve_guild_channel(interaction: discord.Interaction, raw) -> discord.abc.Messageable | None:
@@ -195,9 +241,12 @@ class ArkNotifications(commands.Cog):
             return
         if not self.poll_ark_notices.is_running():
             self.poll_ark_notices.start()
+        if not self.expire_restart_notices.is_running():
+            self.expire_restart_notices.start()
 
     def cog_unload(self) -> None:
         self.poll_ark_notices.cancel()
+        self.expire_restart_notices.cancel()
 
     @app_commands.command(
         name="arknotifications",
@@ -252,6 +301,17 @@ class ArkNotifications(commands.Cog):
 
     @poll_ark_notices.before_loop
     async def before_poll_ark_notices(self):
+        await self.bot.wait_until_ready()
+
+    @tasks.loop(minutes=config.ARK_RESTART_NOTICE_EXPIRE_CHECK_MINUTES)
+    async def expire_restart_notices(self):
+        try:
+            await expire_stale_restart_notices(self.bot)
+        except Exception:
+            logger.exception("ARK restart notice expiry failed")
+
+    @expire_restart_notices.before_loop
+    async def before_expire_restart_notices(self):
         await self.bot.wait_until_ready()
 
 

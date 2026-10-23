@@ -12,6 +12,7 @@ from functions.ark_notices import (
     is_restart_countdown_notice,
     is_server_removal_notice,
     replaces_previous_ark_notice,
+    restart_notice_is_expired,
 )
 from functions.asa_client import parse_announcement
 from functions.asa_models import AsaAnnouncement
@@ -161,6 +162,15 @@ def test_execsave_and_countdown_helpers():
     assert replaces_previous_ark_notice("Restart in 5 minutes")
     assert replaces_previous_ark_notice("Servers will be removed from the official list")
     assert not replaces_previous_ark_notice("Servers coming down for maintenance")
+
+
+def test_restart_notice_is_expired():
+    from datetime import datetime, timedelta, timezone
+
+    now = datetime(2026, 10, 23, 12, 0, tzinfo=timezone.utc)
+    assert not restart_notice_is_expired(now - timedelta(hours=23, minutes=59), now=now, ttl_hours=24)
+    assert restart_notice_is_expired(now - timedelta(hours=24), now=now, ttl_hours=24)
+    assert not restart_notice_is_expired(now - timedelta(hours=48), now=now, ttl_hours=0)
 
 
 def test_consume_execsave_does_not_post():

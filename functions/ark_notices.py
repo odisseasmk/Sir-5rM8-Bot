@@ -2,10 +2,15 @@
 from __future__ import annotations
 
 import re
+from datetime import datetime, timedelta, timezone
 
 import db
 from functions import json_db_cache as cache
 from functions.asa_cache import current_announcement
+
+RESTART_NOTICE_TITLE = "Official ARK Restart Notice"
+REMOVAL_NOTICE_TITLE = "Official ARK Server Removal"
+GENERIC_NOTICE_TITLE = "Official ARK Notification"
 
 _EXECSAVE_RE = re.compile(r"^execsave[.!]*$", re.IGNORECASE)
 _CRASH_DUMP_COMMAND_RE = re.compile(
@@ -53,6 +58,24 @@ def replaces_previous_ark_notice(text: str) -> bool:
     return is_restart_countdown_notice(text) or is_server_removal_notice(text)
 
 
+def restart_notice_is_expired(
+    created_at: datetime,
+    *,
+    now: datetime | None = None,
+    ttl_hours: float | None = None,
+) -> bool:
+    """True when a restart notice Discord message should be auto-deleted."""
+    import config
+
+    ttl = config.ARK_RESTART_NOTICE_TTL_HOURS if ttl_hours is None else float(ttl_hours)
+    if ttl <= 0:
+        return False
+    now = now or datetime.now(timezone.utc)
+    if created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=timezone.utc)
+    return (now - created_at.astimezone(timezone.utc)) >= timedelta(hours=ttl)
+
+
 def should_post_ark_notice(text: str) -> bool:
     """False for empty pages and internal-only exec lines Wildcard publishes."""
     compact = (text or "").strip()
@@ -91,9 +114,12 @@ def consume_ark_notice_update() -> tuple[str | None, list[dict]]:
     return current, cache.get("ark_notifications", db.get_ark_notification_channels)
 
 
+def list_ark_notifications() -> list[dict]:
+    return list(cache.get("ark_notifications", db.get_ark_notification_channels) or [])
+
+
 def get_ark_notification(guild_id: str) -> dict | None:
-    channels = cache.get("ark_notifications", db.get_ark_notification_channels)
-    for row in channels:
+    for row in list_ark_notifications():
         if str(row.get("guild_id")) == str(guild_id):
             return {
                 "channel_id": row.get("channel_id"),
