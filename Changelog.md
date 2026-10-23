@@ -4,11 +4,20 @@
 
 ### Features
 
+### Fixes
+
+### Docs
+
+## [1.9.0] - 2026-10-23
+
+### Features
+
 - Auto-delete **Official ARK Restart Notice** Discord posts after 24 hours (`ARK_RESTART_NOTICE_TTL_HOURS`)
 
 ### Fixes
 
-### Docs
+- Raise requests, Pillow, aiohttp, python-dotenv, and pytest to releases without current advisories.
+- Deploy marker `v1.9.0`
 
 ## [1.8.3] - 2026-10-03
 
