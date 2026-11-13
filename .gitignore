@@ -20,3 +20,4 @@ current-rates.text
 rate-notification-channels.json
 
 .railway-database-url.txt
+.DS_Store
