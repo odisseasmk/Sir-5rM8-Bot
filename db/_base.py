@@ -62,6 +62,26 @@ def get_database_url() -> str:
     return _first_env("DATABASE_URL", "NEON_DATABASE_URL")
 
 
+def get_turso_database_url() -> str:
+    return _first_env("TURSO_DATABASE_URL", "LIBSQL_URL")
+
+
+def get_turso_auth_token() -> str:
+    return _first_env("TURSO_AUTH_TOKEN", "LIBSQL_AUTH_TOKEN")
+
+
+def turso_configured() -> bool:
+    return bool(get_turso_database_url() and get_turso_auth_token())
+
+
+def turso_active() -> bool:
+    """Turso is the storage backend only when explicitly enabled."""
+    if not turso_configured():
+        return False
+    flag = _first_env("TURSO_ACTIVE", "USE_TURSO").lower()
+    return flag in ("1", "true", "yes", "on")
+
+
 def get_postgrest_url() -> str:
     return _first_env("POSTGREST_URL", "SUPABASE_URL")
 
@@ -95,6 +115,8 @@ def use_postgrest() -> bool:
 
 
 def storage_backend_name() -> str:
+    if turso_active():
+        return "turso"
     if use_postgres():
         return "postgres"
     if use_postgrest():

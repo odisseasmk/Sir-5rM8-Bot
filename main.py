@@ -179,6 +179,28 @@ def _validate_env() -> None:
     else:
         logger.info("Storage backend: JSON files (%s)", config.DATA_DIR)
 
+    from db import turso_active, turso_configured
+
+    if turso_active():
+        logger.warning(
+            "TURSO_ACTIVE is set but Turso is not wired as the storage backend yet; "
+            "keep using DATABASE_URL until the turso backend ships."
+        )
+    elif turso_configured():
+        try:
+            from db.turso_client import check_connection
+
+            check_connection()
+            logger.info(
+                "Turso standby connection OK (inactive — Neon/Postgres remains authoritative)"
+            )
+        except Exception as exc:
+            logger.warning(
+                "Turso standby connection failed: %s "
+                "(fix TURSO_DATABASE_URL / TURSO_AUTH_TOKEN or unset them)",
+                exc,
+            )
+
 
 def _start_background_tasks() -> None:
     if not update_presence.is_running():
