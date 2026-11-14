@@ -54,6 +54,9 @@ No user-facing prefix commands.
 | Variable | Purpose |
 |----------|---------|
 | `DATABASE_URL` | Postgres connection string (**preferred** when set) |
+| `TURSO_DATABASE_URL` | Turso libSQL URL (standby mirror; inactive unless `TURSO_ACTIVE=1`) |
+| `TURSO_AUTH_TOKEN` | Turso database auth token |
+| `TURSO_ACTIVE` | `1` to select Turso (not wired yet — keep unset for standby only) |
 | `POSTGREST_URL` | Postgres REST project URL (used only if no `DATABASE_URL`) |
 | `POSTGREST_KEY` | Per-bot JWT (`role=bot_sir5rm8`) or admin key |
 | `POSTGREST_JWT` + `POSTGREST_ANON_KEY` | Alternative JWT auth pair |
